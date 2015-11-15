@@ -301,7 +301,7 @@ void sigint_handler(int sig)
     int jid = pid2jid(pid);
     printf("jid: %d.\n", jid);
 
-    kill(-pid, SIGINT);
+    kill(-pid, 15);
 
     return;
 }
@@ -320,7 +320,7 @@ void sigtstp_handler(int sig)
     printf("Job %d-%d has been stopped.\n", pid, jid);
 
     jobs[jid].state = ST;
-    kill(-pid, SIGTSTP);
+    kill(-pid, 17);
 
     return;
 }
