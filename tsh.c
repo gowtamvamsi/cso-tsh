@@ -207,7 +207,7 @@ void eval(char *cmdline)
             
             
             if (execvp(argv[0], argv) < 0 ) {
-                printf("Command not found! %s", argv[0]);
+                printf("Command not found: %s", argv[0]);
                 exit(1); /* REM Q research on the exit status code. */
             }
 
