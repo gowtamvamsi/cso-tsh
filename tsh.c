@@ -283,6 +283,7 @@ void waitfg(pid_t pid)
  */
 void sigchld_handler(int sig) 
 {
+    printf("A child became a zombie.\n");
     return;
 }
 
@@ -293,6 +294,7 @@ void sigchld_handler(int sig)
  */
 void sigint_handler(int sig) 
 {
+    printf("You pressed ctrl-c!\n");
     return;
 }
 
@@ -303,6 +305,7 @@ void sigint_handler(int sig)
  */
 void sigtstp_handler(int sig) 
 {
+    printf("You pressed ctrl-z!\n");
     return;
 }
 
