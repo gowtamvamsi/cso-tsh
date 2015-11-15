@@ -294,7 +294,7 @@ void do_bgfg(char **argv)
 void waitfg(pid_t pid)
 {
     while (pid==fgpid()) {
-        sleep(1);
+        usleep(100000);
     }
     return;
 }
