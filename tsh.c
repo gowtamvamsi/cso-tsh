@@ -293,7 +293,7 @@ void do_bgfg(char **argv)
  */
 void waitfg(pid_t pid)
 {
-    while (pid==fgpid()) {
+    while (pid == fgpid(jobs)) {
         usleep(100000);
     }
     return;
