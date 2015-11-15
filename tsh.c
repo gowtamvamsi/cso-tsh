@@ -168,8 +168,9 @@ int main(int argc, char **argv)
 void eval(char *cmdline) 
 {
     char argv[MAXARGS];
-    int bg = parseline(cmdline, argv);
-    if (argv[0]=='\n') return;
+    int bg = parseline(cmdline, argv); /* build argv and store if the process is background or foreground */
+    if (argv[0]=='\n') return; /* if ENTER is pressed, just print the prompt */
+    /* implement the builtin command */
     return;
 }
 
