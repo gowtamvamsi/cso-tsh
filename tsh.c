@@ -384,11 +384,14 @@ void sigtstp_handler(int sig)
 {
     pid_t pid = fgpid(jobs);
     int jid = pid2jid(pid);
-
-    printf("Job [%d] (%d) was stopped by signal: %d\n", pid, jid, sig);
-
-    jobs[jid].state = ST;
-    kill(-pid, 24);
+    
+    if (pid != 0){
+        jobs[jid].state = ST;
+        kill(-pid, 24);
+        if (sig < 0) {
+            printf("Job [%d] (%d) was stopped by signal: %d\n", pid, jid, sig);
+        }
+    }
 
     return;
 }
