@@ -347,6 +347,15 @@ void waitfg(pid_t pid)
 void sigchld_handler(int sig) 
 {
     printf("A child became a zombie.\n");
+    pid_t pid = 1;
+    int status;
+    while ((pid = waitpid(fgpid(jobs), &status, WNOHANG|WUNTRACED)) 0) {
+        if (WIFSIGNALLED(status)) {
+            sigint_handler(-2);
+        } else if (WIFSTOPPED(status)) {
+            sigtstp_handler(20);
+        }
+    }
     return;
 }
 
