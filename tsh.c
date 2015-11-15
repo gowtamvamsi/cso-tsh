@@ -167,10 +167,15 @@ int main(int argc, char **argv)
 */
 void eval(char *cmdline) 
 {
-    char argv[MAXARGS];
-    int bg = parseline(cmdline, argv); /* build argv and store if the process is background or foreground */
-    if (argv[0]=='\n') return; /* if ENTER is pressed, just print the prompt */
+    if (cmdline[0]=='\n') return; /* if ENTER is pressed, just print the prompt */
+    
+    
+    char *argv[MAXARGS];
+    int bg = parseline(cmdline, argv); /* build argv and store whether the process is background or foreground */
     /* implement the builtin command */
+    builtin_cmd(argv);
+    
+    
     return;
 }
 
@@ -237,7 +242,16 @@ int parseline(const char *cmdline, char **argv)
  */
 int builtin_cmd(char **argv) 
 {
-    return 0;     /* not a builtin command */
+   if (!strcmp(argv[0], "quit") || !strcmp(argv[0], "exit")) {
+        exit(0);
+   } else if (!strcmp(argv[0], "bg") || !strcmp(argv[0],"fg")) {
+        do_bgfg(argv);
+        return 1;
+   } else if (!strcmp(argv[0], "jobs")) {
+        listjobs(jobs);
+        return 1;
+   }
+   return 0;     /* not a builtin command */
 }
 
 /* 
