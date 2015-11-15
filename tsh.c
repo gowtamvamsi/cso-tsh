@@ -349,6 +349,8 @@ void sigchld_handler(int sig)
             sigint_handler(-2);
         } else if (WIFSTOPPED(status)) {
             sigtstp_handler(20);
+        } else if (WIFEXITED(status)) {
+            deletejob(jobs, pid);
         }
     }
     return;
