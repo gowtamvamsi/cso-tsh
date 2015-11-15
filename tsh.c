@@ -341,7 +341,7 @@ void waitfg(pid_t pid)
  */
 void sigchld_handler(int sig) 
 {
-    printf("A child became a zombie.\n");
+    printf("\nA child became a zombie.\n");
     pid_t pid = 1;
     int status;
     while ((pid = waitpid(fgpid(jobs), &status, WNOHANG|WUNTRACED)) > 0) {
@@ -363,7 +363,7 @@ void sigchld_handler(int sig)
  */
 void sigint_handler(int sig) 
 {
-    printf("You pressed ctrl-c!\nsignal:%d\n", sig);
+    printf("\nYou pressed ctrl-c!\nsignal:%d\n", sig);
     pid_t pid = fgpid(jobs);
     printf("pid: %d.\n", pid);
 
@@ -382,7 +382,7 @@ void sigint_handler(int sig)
  */
 void sigtstp_handler(int sig) 
 {
-    printf("You pressed ctrl-z!\nsignal:%d\n", sig);
+    printf("\nYou pressed ctrl-z!\nsignal:%d\n", sig);
     pid_t pid = fgpid(jobs);
     int jid = pid2jid(pid);
 
