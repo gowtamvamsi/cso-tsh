@@ -380,7 +380,7 @@ void sigint_handler(int sig)
  *     the user types ctrl-z at the keyboard. Catch it and suspend the
  *     foreground job by sending it a SIGTSTP.  
  */
-void sigtstp_handler(int sig) 
+void sigtstp_handler(intig) 
 {
     pid_t pid = fgpid(jobs);
     int jid = pid2jid(pid);
@@ -388,7 +388,7 @@ void sigtstp_handler(int sig)
     printf("Job [%d] (%d) was stopped by signal: %d\n", pid, jid, sig);
 
     jobs[jid].state = ST;
-    kill(-pid, 17);
+    kill(-pid, 24);
 
     return;
 }
