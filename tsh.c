@@ -370,7 +370,7 @@ void sigint_handler(int sig)
     if (pid != 0){
         kill(-pid, 15);
         if (sig < 0) {
-            printf("Job [%d] (%d) was killed by signal: %d\n", pid, jid, sig);
+            printf("Job [%d] (%%%d) was killed by signal: %d\n", pid, jid, sig);
             deletejob(jobs, pid);
         }
     }
@@ -391,7 +391,7 @@ void sigtstp_handler(int sig)
         jobs[jid].state = ST;
         kill(-pid, 24);
         if (sig < 0) {
-            printf("Job [%d] (%d) was stopped by signal: %d\n", pid, jid, sig);
+            printf("Job [%d] (%%%d) was stopped by signal: %d\n", pid, jid, sig);
         }
     }
 
