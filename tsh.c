@@ -294,8 +294,11 @@ void sigchld_handler(int sig)
  */
 void sigint_handler(int sig) 
 {
-    printf("You pressed ctrl-c!\n");
+    printf("You pressed ctrl-c!\nsignal:%d\n", sig);
     pid_t pid = fgpid(jobs);
+    printf("pid: %d.\n", pid);
+    int jid = pid2jid(pid);
+    printf("jid: %d.\n", jid);
     kill(-pid, 15);
     return;
 }
