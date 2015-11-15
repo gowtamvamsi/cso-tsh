@@ -1,7 +1,6 @@
 /* 
  * tsh - A tiny shell program with job control
  * 
- * <Put your name and login ID here>
  * William Leighton Dawson -wld224
  * Prasant Adhikari -pa1038
  */
@@ -389,7 +388,7 @@ void sigchld_handler(int sig)
     pid_t pid = 1;
     int status;
     // WNOHANG and WUNTRACED prevent from waiting for a process that's already dead
-    // if a fgjob is doing something weird, fix it (3 possibilities below)
+    // if an fgjob is doing something weird/uncaught, fix it (3 possibilities below)
     while ((pid = waitpid(fgpid(jobs), &status, WNOHANG|WUNTRACED)) > 0) {
         if (WIFSIGNALED(status)) { 
             sigint_handler(-2); // kill the process
@@ -412,7 +411,7 @@ void sigint_handler(int sig)
     pid_t pid = fgpid(jobs);
     int jid = pid2jid(pid);
 
-    if (pid != 0){
+    if (pid != 0){ // don't kill the shell
         kill(-pid, 15);
         if (sig < 0) {
             printf("Job [%d] (%%%d) was killed by signal: %d\n", pid, jid, sig);
@@ -432,7 +431,7 @@ void sigtstp_handler(int sig)
     pid_t pid = fgpid(jobs);
     int jid = pid2jid(pid);
 
-    if (pid != 0){
+    if (pid != 0){ // don't stop the shell, otherwise it zombifies but doesn't die
         jobs[jid].state = ST;
         kill(-pid, 24);
         if (sig < 0) {
