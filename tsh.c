@@ -380,7 +380,7 @@ void sigint_handler(int sig)
  *     the user types ctrl-z at the keyboard. Catch it and suspend the
  *     foreground job by sending it a SIGTSTP.  
  */
-void sigtstp_handler(intig) 
+void sigtstp_handler(int sig) 
 {
     pid_t pid = fgpid(jobs);
     int jid = pid2jid(pid);
