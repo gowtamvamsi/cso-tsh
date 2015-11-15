@@ -165,20 +165,46 @@ int main(int argc, char **argv)
  * background children don't receive SIGINT (SIGTSTP) from the kernel
  * when we type ctrl-c (ctrl-z) at the keyboard.  
 */
+
+int Fork(); /* the mask for the fork function */
 void eval(char *cmdline) 
 {
+    
     if (cmdline[0]=='\n') return; /* if ENTER is pressed, just print the prompt */
     
-    
     char *argv[MAXARGS];
+    pid_t pid;
     int bg = parseline(cmdline, argv); /* build argv and store whether the process is background or foreground */
-    /* implement the builtin command */
-    builtin_cmd(argv);
+    
+    
+    if (!builtin_cmd(argv)) {
+        /* REM implement the signal blocks */
+        if ((pid=Fork()) == 0) {/* in the child process, run the command */
+            if (execvp(argv[0], argv) < 0 ) {
+                printf("Command not found! %s", argv[0]);
+                exit(1); /* REM research on the exit status code. */
+            }
+        } else {  /* in the parent process, wait for child termination if foreground or else just add the job */
+            addjob(jobs, pid, bg ? BG : FG, cmdline);
+            if (!bg){
+                waitfg(pid); /* REM Implement this waitfg function */
+            } else {
+                listjobs(jobs);
+            }
+        }
+    }
     
     
     return;
 }
 
+int Fork() {
+    pid_t pid;
+    if ((pid=fork())<0) {
+        unix_error("Fork error!");
+    }
+    return pid;
+}
 /* 
  * parseline - Parse the command line and build the argv array.
  * 
@@ -267,6 +293,9 @@ void do_bgfg(char **argv)
  */
 void waitfg(pid_t pid)
 {
+    while (pid==fgpid()) {
+        sleep(1);
+    }
     return;
 }
 
@@ -356,7 +385,7 @@ int addjob(struct job_t *jobs, pid_t pid, int state, char *cmdline)
 	if (jobs[i].pid == 0) {
 	    jobs[i].pid = pid;
 	    jobs[i].state = state;
-	    jobs[i].jid = nextjid++;
+	    jobs[i].jid = nextjid++; /* REM check the ++ operator behaviour for assignment */
 	    if (nextjid > MAXJOBS)
 		nextjid = 1;
 	    strcpy(jobs[i].cmdline, cmdline);
