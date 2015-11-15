@@ -201,7 +201,7 @@ void eval(char *cmdline)
             
             /* REM INS Here's the workaround.......to prevent ctrl-c going all the way up to the bash */  
             if (setpgid (0, 0) < 0) {
-                unix_error("setpgid error\n"); /* REM remember to check for error for everything */
+                unix_error("setpgid error"); /* REM remember to check for error for everything */
             }
             
             
@@ -229,7 +229,7 @@ void eval(char *cmdline)
 int Fork() {
     pid_t pid;
     if ((pid=fork())<0) {
-        unix_error("Fork error!\n");
+        unix_error("Fork error!");
     }
     return pid;
 }
