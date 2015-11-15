@@ -2,6 +2,8 @@
  * tsh - A tiny shell program with job control
  * 
  * <Put your name and login ID here>
+ * William Leighton Dawson -wld224
+ * Prasant Adhikari -pa1038
  */
 #include <stdio.h>
 #include <stdlib.h>
