@@ -310,8 +310,11 @@ void sigint_handler(int sig)
  */
 void sigtstp_handler(int sig) 
 {
-    printf("You pressed ctrl-z!\n");
+    printf("You pressed ctrl-z!\nsignal:%d\n", sig);
     pid_t pid = fgpid(jobs);
+    printf("pid: %d.\n", pid);
+    int jid = pid2jid(pid);
+    printf("jid: %d.\n", jid);
     kill(-pid, 17);
     return;
 }
