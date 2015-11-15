@@ -323,7 +323,15 @@ void sigchld_handler(int sig)
  */
 void sigint_handler(int sig) 
 {
-    printf("You pressed ctrl-c!\n");
+    printf("You pressed ctrl-c!\nsignal:%d\n", sig);
+    pid_t pid = fgpid(jobs);
+    printf("pid: %d.\n", pid);
+
+    int jid = pid2jid(pid);
+    printf("jid: %d.\n", jid);
+
+    kill(-pid, 15);
+
     return;
 }
 
@@ -334,7 +342,15 @@ void sigint_handler(int sig)
  */
 void sigtstp_handler(int sig) 
 {
-    printf("You pressed ctrl-z!\n");
+    printf("You pressed ctrl-z!\nsignal:%d\n", sig);
+    pid_t pid = fgpid(jobs);
+    int jid = pid2jid(pid);
+
+    printf("Job %d-%d has been stopped.\n", pid, jid);
+
+    jobs[jid].state = ST;
+    kill(-pid, 17);
+
     return;
 }
 
