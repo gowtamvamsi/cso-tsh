@@ -202,12 +202,12 @@ void eval(char *cmdline)
             
             /* REM INS Here's the workaround.......to prevent ctrl-c going all the way up to the bash */  
             if (setpgid (0, 0) < 0) {
-                unix_error("setpgid error"); /* REM remember to check for error for everything */
+                unix_error("setpgid error\n"); /* REM remember to check for error for everything */
             }
             
             
             if (execvp(argv[0], argv) < 0 ) {
-                printf("Command not found! %s", argv[0]);
+                printf("Command not found: %s\n", argv[0]);
                 exit(1); /* REM Q research on the exit status code. */
             }
 
@@ -230,7 +230,7 @@ void eval(char *cmdline)
 int Fork() {
     pid_t pid;
     if ((pid=fork())<0) {
-        unix_error("Fork error!");
+        unix_error("Fork error!\n");
     }
     return pid;
 }
@@ -386,16 +386,17 @@ void waitfg(pid_t pid)
  */
 void sigchld_handler(int sig) 
 {
-    printf("\nA child became a zombie.\n");
     pid_t pid = 1;
     int status;
+    // WNOHANG and WUNTRACED prevent from waiting for a process that's already dead
+    // if a fgjob is doing something weird, fix it (3 possibilities below)
     while ((pid = waitpid(fgpid(jobs), &status, WNOHANG|WUNTRACED)) > 0) {
-        if (WIFSIGNALED(status)) {
-            sigint_handler(-2);
+        if (WIFSIGNALED(status)) { 
+            sigint_handler(-2); // kill the process
         } else if (WIFSTOPPED(status)) {
-            sigtstp_handler(20);
+            sigtstp_handler(20); // stop the process
         } else if (WIFEXITED(status)) {
-            deletejob(jobs, pid);
+            deletejob(jobs, pid); // delete the job
         }
     }
     return;
@@ -408,15 +409,16 @@ void sigchld_handler(int sig)
  */
 void sigint_handler(int sig) 
 {
-    printf("\nYou pressed ctrl-c!\nsignal:%d\n", sig);
     pid_t pid = fgpid(jobs);
-    printf("pid: %d.\n", pid);
-
     int jid = pid2jid(pid);
-    printf("jid: %d.\n", jid);
 
-    kill(-pid, 15);
-
+    if (pid != 0){
+        kill(-pid, 15);
+        if (sig < 0) {
+            printf("Job [%d] (%%%d) was killed by signal: %d\n", pid, jid, sig);
+            deletejob(jobs, pid);
+        }
+    }
     return;
 }
 
@@ -427,14 +429,16 @@ void sigint_handler(int sig)
  */
 void sigtstp_handler(int sig) 
 {
-    printf("\nYou pressed ctrl-z!\nsignal:%d\n", sig);
     pid_t pid = fgpid(jobs);
     int jid = pid2jid(pid);
 
-    printf("Job %d-%d has been stopped.\n", pid, jid);
-
-    jobs[jid].state = ST;
-    kill(-pid, 17);
+    if (pid != 0){
+        jobs[jid].state = ST;
+        kill(-pid, 24);
+        if (sig < 0) {
+            printf("Job [%d] (%%%d) was stopped by signal: %d\n", pid, jid, sig);
+        }
+    }
 
     return;
 }
