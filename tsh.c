@@ -343,13 +343,15 @@ void sigchld_handler(int sig)
 {
     pid_t pid = 1;
     int status;
+    // WNOHANG and WUNTRACED prevent from waiting for a process that's already dead
+    // if a fgjob is doing something weird, fix it (3 possibilities below)
     while ((pid = waitpid(fgpid(jobs), &status, WNOHANG|WUNTRACED)) > 0) {
-        if (WIFSIGNALED(status)) {
-            sigint_handler(-2);
+        if (WIFSIGNALED(status)) { 
+            sigint_handler(-2); // kill the process
         } else if (WIFSTOPPED(status)) {
-            sigtstp_handler(20);
+            sigtstp_handler(20); // stop the process
         } else if (WIFEXITED(status)) {
-            deletejob(jobs, pid);
+            deletejob(jobs, pid); // delete the job
         }
     }
     return;
@@ -384,7 +386,7 @@ void sigtstp_handler(int sig)
 {
     pid_t pid = fgpid(jobs);
     int jid = pid2jid(pid);
-    
+
     if (pid != 0){
         jobs[jid].state = ST;
         kill(-pid, 24);
