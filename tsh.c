@@ -294,6 +294,8 @@ void sigchld_handler(int sig)
  */
 void sigint_handler(int sig) 
 {
+    pid_t fg = fgpid(jobs);
+    kill(-pid, 15);
     printf("You pressed ctrl-c!\n");
     return;
 }
