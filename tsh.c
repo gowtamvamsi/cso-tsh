@@ -177,14 +177,45 @@ void eval(char *cmdline)
     int bg = parseline(cmdline, argv); /* build argv and store whether the process is background or foreground */
     
     
+    sigset_t sigset; /* the set of signals to be blocked, declared in <signal.h>, must be initialized using sigemptyset()  */ 
+    if (sigemptyset(&sigset) < 0){
+        unix_error("sigemptyset() error!"); /* not sure if this error will ever occur. just putting it in for specifications */
+    } 
+    if (sigaddset(&sigset, SIGCHLD) < 0 ) {
+        unix_error("sigaddset() error!");
+    }
+    if (sigprocmask(SIG_BLOCK, &sigset, NULL) < 0) {
+        unix_error("sigprocmask() error!");
+    }
+    /* now the parent already has the SIGCHLD blocked. need to unblock these signals for the child. */ 
+    
     if (!builtin_cmd(argv)) {
         /* REM implement the signal blocks */
         if ((pid=Fork()) == 0) {/* in the child process, run the command */
+            
+            
+            /* REM Q (Why) unblock the signal before exec-ing the child */
+            if (sigprocmask(SIG_UNBLOCK, &sigset, NULL)) {
+                unix_error("setprogmask() error while SIG_UNBLOCK-ing the SIGCHLD.");
+            }
+            
+            
+            /* REM INS Here's the workaround.......to prevent ctrl-c going all the way up to the bash */  
+            if (setpgid (0, 0) < 0) {
+                unix_error("setpgid error"); /* REM remember to check for error for everything */
+            }
+            
+            
             if (execvp(argv[0], argv) < 0 ) {
                 printf("Command not found! %s", argv[0]);
-                exit(1); /* REM research on the exit status code. */
+                exit(1); /* REM Q research on the exit status code. */
             }
+
         } else {  /* in the parent process, wait for child termination if foreground or else just add the job */
+            
+            if (sigprocmask(SIG_UNBLOCK, &sigset, NULL)) {
+                unix_error("sigprocmask() error while SIG_UNBLOCK-ing the SIGCHLD");
+            }
             addjob(jobs, pid, bg ? BG : FG, cmdline);
             if (!bg){
                 waitfg(pid); /* REM Implement this waitfg function */
@@ -192,9 +223,7 @@ void eval(char *cmdline)
                 listjobs(jobs);
             }
         }
-    }
-    
-    
+    }   
     return;
 }
 
@@ -293,7 +322,7 @@ void do_bgfg(char **argv)
  */
 void waitfg(pid_t pid)
 {
-    while (pid==fgpid()) {
+    while (pid==fgpid(jobs)) {
         sleep(1);
     }
     return;
