@@ -318,7 +318,7 @@ void do_bgfg(char **argv)
     int jid;  /* finally use jid to change job state. pid is not applicable because jid2pid is not available. */ 
     /* make sure the arguments are passed. */
     if (id==NULL){
-        printf("Provide a pid or %%jid with %s", argv[0]); /* REM Check the error messages to fix with tshref */
+        printf("Provide a pid or %%jid with %s\n", argv[0]); /* REM Check the error messages to fix with tshref */
         return;
     }
     /* make sure the arguments passed are correct. */
@@ -326,24 +326,24 @@ void do_bgfg(char **argv)
     if (id[0] == '%') { /* it is a jid*/
         jid = atoi(&id[1]); /* REM do i need a isdigit here? */
         if (!(job = getjobjid(jobs, jid))) {
-            printf("[%s] No such job.", id);
+            printf("[%s] No such job.\n", id);
             return;
         }
     }  else if (isdigit(id[0])){ /* it is a pid */
         pid_t pid = atoi(id); /* REM check for error in this case like 1a*/
         if (!(job=getjobpid(jobs, pid))) {
-            printf("[%s] No such process.", id);
+            printf("[%s] No such process.\n", id);
             return;
         }
     } else {
-        printf("%s The argument must be a PID or %%jid.", id);
+        printf("%s The argument must be a PID or %%jid.\n", id);
         return;
     }
     
     /* get the job running */
     if (kill(-(job -> pid), SIGCONT) < 0) {
         if (errno != ESRCH) {
-            printf("kill error!");
+            printf("kill error!\n");
         }
     }
 
@@ -355,7 +355,7 @@ void do_bgfg(char **argv)
         job->state=BG;
         listjobs(jobs); /* REM Will probably need to change this behaviour to single job*/
     } else {
-        printf("bg/fg error: %s", argv[0]);
+        printf("bg/fg error: %s\n", argv[0]);
     }
 
     return;
