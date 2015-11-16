@@ -386,10 +386,11 @@ void sigchld_handler(int sig)
 {
     if (verbose) printf("\nsigchld_handler called with sig = %d\n", sig);
     pid_t pid = 1;
-    int status;
+    int status, jid;
     // WNOHANG and WUNTRACED prevent from waiting for a process that's already dead
     // if an fgjob is doing something weird/uncaught, fix it (3 possibilities below)
     while ((pid = waitpid(-1, &status, WNOHANG|WUNTRACED)) > 0) {
+        jid = pid2jid(pid);
         if (WIFSIGNALED(status)) { /* child terminated but the signal was not caught. basically for background processes. */ 
             if (verbose) printf("WIFSIGNALED on [%%%d] (%d) by sig %d\n", jid, pid, WTERMSIG(status));
             sigint_handler(-2); // reap the process
