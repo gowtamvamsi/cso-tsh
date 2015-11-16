@@ -396,7 +396,7 @@ void sigchld_handler(int sig)
             sigint_handler(-2); // reap the process
         } else if (WIFSTOPPED(status)) { 
             if (verbose) printf("WIFSTOPPED on [%%%d] (%d) by sig %d\n", jid, pid, WSTOPSIG(status));
-            sigtstp_handler(24); // stop the process
+            sigtstp_handler(SIGTSTP); // stop the process
         } else if (WIFEXITED(status)) { /* child terminated normally. */
             if (verbose) printf("WIFEXITED on [%%%d] (%d) with status %d", jid, pid, WEXITSTATUS(status));
             deletejob(jobs, pid); // delete the job
