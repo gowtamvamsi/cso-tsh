@@ -328,17 +328,17 @@ void do_bgfg(char **argv)
     if (id[0] == '%') { /* it is a jid*/
         jid = atoi(&id[1]); /* REM do i need a isdigit here? */
         if (!(job = getjobjid(jobs, jid))) {
-            printf("%%%d: No such job.\n", jid);
+            printf("%%%d: No such job\n", jid);
             return;
         }
     }  else if (isdigit(id[0])){ /* it is a pid */
         pid_t pid = atoi(id); /* REM check for error in this case like 1a*/
         if (!(job=getjobpid(jobs, pid))) {
-            printf("(%d): No such process.\n", pid);
+            printf("(%d): No such process\n", pid);
             return;
         }
     } else {
-        printf("%s The argument must be a PID or %%jobid.\n", id);
+        printf("%s argument must be a PID or %%jobid\n", argv[0]);
         return;
     }
     
