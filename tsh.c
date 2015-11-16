@@ -324,7 +324,6 @@ void do_bgfg(char **argv)
     /*get the job by jid or pid */
     if (id[0] == '%') { /* it is a jid*/
         jid = atoi(&id[1]); /* REM do i need a isdigit here? */
-        printf("yup i am herer.");
         if (!(job = getjobjid(jobs, jid))) {
             printf("[%%%d] No such job.\n", jid);
             return;
@@ -393,7 +392,7 @@ void sigchld_handler(int sig)
     while ((pid = waitpid(-1, &status, WNOHANG|WUNTRACED)) > 0) {
         if (WIFSIGNALED(status)) { /* child terminated but the signal was not caught. */ 
             if (verbose) printf("WIFSIGNALED with status = %d and pid = %d\n", status, pid);
-            sigint_handler(SIGINT); // kill the process
+            sigint_handler(-2); // kill the process
         } else if (WIFSTOPPED(status)) { 
             if (verbose) printf("WIFSTOPPED with status = %d and pid = %d\n", status, pid);
             sigtstp_handler(SIGTSTP); // stop the process
@@ -418,7 +417,7 @@ void sigint_handler(int sig)
     if (pid != 0){ // don't kill the shell
         kill(-pid, SIGINT);
         if (sig < 0) {
-            printf("Job [%%%d] (%d) was killed by signal: %d\n", jid, pid, sig);
+            printf("Job [%%%d] (%d) was killed by signal: %d\n", jid, pid, (-sig));
             deletejob(jobs, pid);
         }
     }
