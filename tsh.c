@@ -424,7 +424,7 @@ void sigint_handler(int sig)
     if (pid != 0){ // don't kill the shell
         kill(-pid, 2);
         if (sig < 0) {
-            printf("Job [%d] (%d) terminated by signal: %d\n", jid, pid, (-sig));
+            printf("Job [%d] (%d) terminated by signal %d\n", jid, pid, (-sig));
             deletejob(jobs, pid);
         }
     }
@@ -445,7 +445,7 @@ void sigtstp_handler(int sig)
     if (pid != 0){ // if there is a job in the foreground, stop it.
         getjobpid(jobs, pid)->state = ST;
         kill(-pid, SIGTSTP); /* REM may be pass SIGSTP? */
-        printf("Job [%d] (%d) stopped by signal: %d\n", jid, pid, sig);
+        printf("Job [%d] (%d) stopped by signal %d\n", jid, pid, sig);
     }
 
     return;
