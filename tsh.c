@@ -325,13 +325,13 @@ void do_bgfg(char **argv)
     if (id[0] == '%') { /* it is a jid*/
         jid = atoi(&id[1]); /* REM do i need a isdigit here? */
         if (!(job = getjobjid(jobs, jid))) {
-            printf("[%s] No such job.\n", id);
+            printf("[%%%d] No such job.\n", jid);
             return;
         }
     }  else if (isdigit(id[0])){ /* it is a pid */
         pid_t pid = atoi(id); /* REM check for error in this case like 1a*/
         if (!(job=getjobpid(jobs, pid))) {
-            printf("[%s] No such process.\n", id);
+            printf("(%d) No such process.\n", pid);
             return;
         }
     } else {
@@ -388,7 +388,7 @@ void sigchld_handler(int sig)
     int status;
     // WNOHANG and WUNTRACED prevent from waiting for a process that's already dead
     // if an fgjob is doing something weird/uncaught, fix it (3 possibilities below)
-    while ((pid = waitpid(fgpid(jobs), &status, WNOHANG|WUNTRACED)) > 0) {
+    while ((pid = waitpid(-fgpid(jobs), &status, WNOHANG|WUNTRACED)) > 0) {
         if (WIFSIGNALED(status)) { /* child terminated but the signal was not caught. */ 
             sigint_handler(-2); // kill the process
         } else if (WIFSTOPPED(status)) { 
@@ -413,7 +413,7 @@ void sigint_handler(int sig)
     if (pid != 0){ // don't kill the shell
         kill(-pid, 15);
         if (sig < 0) {
-            printf("Job [%d] (%%%d) was killed by signal: %d\n", pid, jid, sig);
+            printf("Job [%%%d] (%d) was killed by signal: %d\n", jid, pid, sig);
             deletejob(jobs, pid);
         }
     }
@@ -434,7 +434,7 @@ void sigtstp_handler(int sig)
         jobs[jid].state = ST;
         kill(-pid, 24); /* REM may be pass SIGSTP? */
         if (sig < 0) {
-            printf("Job [%d] (%%%d) was stopped by signal: %d\n", pid, jid, sig);
+            printf("Job [%%%d] (%d) was stopped by signal: %d\n", jid, pid, sig);
         }
     }
 
