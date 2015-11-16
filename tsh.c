@@ -326,13 +326,13 @@ void do_bgfg(char **argv)
         jid = atoi(&id[1]); /* REM do i need a isdigit here? */
         printf("yup i am herer.");
         if (!(job = getjobjid(jobs, jid))) {
-            printf("[%s] No such job.\n", id);
+            printf("[%%%d] No such job.\n", jid);
             return;
         }
     }  else if (isdigit(id[0])){ /* it is a pid */
         pid_t pid = atoi(id); /* REM check for error in this case like 1a*/
         if (!(job=getjobpid(jobs, pid))) {
-            printf("[%s] No such process.\n", id);
+            printf("(%d) No such process.\n", pid);
             return;
         }
     } else {
@@ -385,16 +385,20 @@ void waitfg(pid_t pid)
  */
 void sigchld_handler(int sig) 
 {
+    if (verbose) printf("sigchld_handler called with sig = %d\n", sig);
     pid_t pid = 1;
     int status;
     // WNOHANG and WUNTRACED prevent from waiting for a process that's already dead
     // if an fgjob is doing something weird/uncaught, fix it (3 possibilities below)
     while ((pid = waitpid(-1, &status, WNOHANG|WUNTRACED)) > 0) {
         if (WIFSIGNALED(status)) { /* child terminated but the signal was not caught. */ 
-            sigint_handler(-2); // kill the process
+            if (verbose) printf("WIFSIGNALED with status = %d and pid = %d\n", status, pid);
+            sigint_handler(SIGINT); // kill the process
         } else if (WIFSTOPPED(status)) { 
-            sigtstp_handler(20); // stop the process
+            if (verbose) printf("WIFSTOPPED with status = %d and pid = %d\n", status, pid);
+            sigtstp_handler(SIGTSTP); // stop the process
         } else if (WIFEXITED(status)) { /* child terminated normally. */
+            if (verbose) printf("WIFEXITED with status = %d and pid = %d\n", status, pid);
             deletejob(jobs, pid); // delete the job
         }
     }
@@ -414,7 +418,7 @@ void sigint_handler(int sig)
     if (pid != 0){ // don't kill the shell
         kill(-pid, SIGINT);
         if (sig < 0) {
-            printf("Job [%d] (%%%d) was killed by signal: %d\n", pid, jid, sig);
+            printf("Job [%%%d] (%d) was killed by signal: %d\n", jid, pid, sig);
             deletejob(jobs, pid);
         }
     }
@@ -435,7 +439,7 @@ void sigtstp_handler(int sig)
         jobs[jid].state = ST;
         kill(-pid, 24); /* REM may be pass SIGSTP? */
         if (sig < 0) {
-            printf("Job [%d] (%%%d) was stopped by signal: %d\n", pid, jid, sig);
+            printf("Job [%%%d] (%d) was stopped by signal: %d\n", jid, pid, sig);
         }
     }
 
