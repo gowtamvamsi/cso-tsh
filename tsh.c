@@ -340,15 +340,9 @@ void do_bgfg(char **argv)
     }
     
     /* get the job running */
-<<<<<<< HEAD
     if (kill(-(job->pid), SIGCONT) < 0) {
         if (errno != ESRCH) { /* REM Q Still not sure on the ESRCH functionality */
             printf("kill error!");
-=======
-    if (kill(-(job -> pid), SIGCONT) < 0) {
-        if (errno != ESRCH) {
-            printf("kill error!\n");
->>>>>>> 341fa407e85bc6649cc80e30d895aae49d13f077
         }
     }
 
