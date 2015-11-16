@@ -322,8 +322,7 @@ void do_bgfg(char **argv)
         printf("Provide a pid or %%jid with %s", argv[0]); /* REM Check the error messages to fix with tshref */
         return;
     }
-    /* make sure the arguments passed are correct. */
-    /*get the job by jid or pid or check for error.*/
+    /*get the job by jid or pid */
     if (id[0] == '%') { /* it is a jid*/
         jid = atoi(&id[1]); /* REM do i need a isdigit here? */
         if (!(job = getjobjid(jobs, jid))) {
@@ -342,8 +341,8 @@ void do_bgfg(char **argv)
     }
     
     /* get the job running */
-    if (kill(-(job -> pid), SIGCONT) < 0) {
-        if (errno != ESRCH) {
+    if (kill(-(job->pid), SIGCONT) < 0) {
+        if (errno != ESRCH) { /* REM Q Still not sure on the ESRCH functionality */
             printf("kill error!");
         }
     }
@@ -354,7 +353,7 @@ void do_bgfg(char **argv)
         waitfg(job->pid); /* REM just something that foreground jobs do */
     } else if (!strcmp(argv[0], "bg")) {
         job->state=BG;
-        listjobs(jobs); /* REM Will probably need to change this behaviour to single job*/
+        printf("[%d] (%d) %s", job->jid, job->pid, job->cmdline); /* REM Will probably need to change this behaviour to single job*/
     } else {
         printf("bg/fg error: %s", argv[0]);
     }
@@ -391,11 +390,11 @@ void sigchld_handler(int sig)
     // WNOHANG and WUNTRACED prevent from waiting for a process that's already dead
     // if a fgjob is doing something weird, fix it (3 possibilities below)
     while ((pid = waitpid(fgpid(jobs), &status, WNOHANG|WUNTRACED)) > 0) {
-        if (WIFSIGNALED(status)) { 
+        if (WIFSIGNALED(status)) { /* child terminated but the signal was not caught. */ 
             sigint_handler(-2); // kill the process
-        } else if (WIFSTOPPED(status)) {
+        } else if (WIFSTOPPED(status)) { 
             sigtstp_handler(20); // stop the process
-        } else if (WIFEXITED(status)) {
+        } else if (WIFEXITED(status)) { /* child terminated normally. */
             deletejob(jobs, pid); // delete the job
         }
     }
@@ -413,8 +412,8 @@ void sigint_handler(int sig)
     int jid = pid2jid(pid);
 
     if (pid != 0){
-        kill(-pid, 15);
-        if (sig < 0) {
+        kill(-pid, 15); /* REM may be pass SIGINT? */
+        if (sig < 0) { /* REM Signal received from an improperly terminated child? */
             printf("Job [%d] (%%%d) was killed by signal: %d\n", pid, jid, sig);
             deletejob(jobs, pid);
         }
@@ -434,7 +433,7 @@ void sigtstp_handler(int sig)
 
     if (pid != 0){
         jobs[jid].state = ST;
-        kill(-pid, 24);
+        kill(-pid, 24); /* REM may be pass SIGSTP? */
         if (sig < 0) {
             printf("Job [%d] (%%%d) was stopped by signal: %d\n", pid, jid, sig);
         }
