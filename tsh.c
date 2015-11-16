@@ -384,7 +384,7 @@ void waitfg(pid_t pid)
  */
 void sigchld_handler(int sig) 
 {
-    if (verbose) printf("sigchld_handler called with sig = %d\n", sig);
+    if (verbose) printf("\nsigchld_handler called with sig = %d\n", sig);
     pid_t pid = 1;
     int status;
     // WNOHANG and WUNTRACED prevent from waiting for a process that's already dead
@@ -395,7 +395,7 @@ void sigchld_handler(int sig)
             sigint_handler(-2); // kill the process
         } else if (WIFSTOPPED(status)) { 
             if (verbose) printf("WIFSTOPPED with status = %d and pid = %d\n", status, pid);
-            sigtstp_handler(SIGTSTP); // stop the process
+            sigtstp_handler(20); // stop the process
         } else if (WIFEXITED(status)) { /* child terminated normally. */
             if (verbose) printf("WIFEXITED with status = %d and pid = %d\n", status, pid);
             deletejob(jobs, pid); // delete the job
@@ -411,11 +411,12 @@ void sigchld_handler(int sig)
  */
 void sigint_handler(int sig) 
 {
+    if (verbose) printf("\nsigint_handler called with sig = %d\n", sig);
     pid_t pid = fgpid(jobs);
     int jid = pid2jid(pid);
 
     if (pid != 0){ // don't kill the shell
-        kill(-pid, SIGINT);
+        kill(-pid, 15);
         if (sig < 0) {
             printf("Job [%%%d] (%d) was killed by signal: %d\n", jid, pid, (-sig));
             deletejob(jobs, pid);
@@ -431,6 +432,7 @@ void sigint_handler(int sig)
  */
 void sigtstp_handler(int sig) 
 {
+    if (verbose) printf("\nsigtstp_handler called with sig = %d\n", sig);
     pid_t pid = fgpid(jobs);
     int jid = pid2jid(pid);
 
