@@ -206,7 +206,7 @@ void eval(char *cmdline)
             
             
             if (execvp(argv[0], argv) < 0 ) {
-                printf("Command not found: %s\n", argv[0]);
+                printf("%s: Command not found\n", argv[0]);
                 exit(1); /* REM Q research on the exit status code. */
             }
 
@@ -318,20 +318,20 @@ void do_bgfg(char **argv)
     int jid;  /* finally use jid to change job state. pid is not applicable because jid2pid is not available. */ 
     /* make sure the arguments are passed. */
     if (id==NULL){
-        printf("Provide a pid or %%jid with %s\n", argv[0]); /* REM Check the error messages to fix with tshref */
+        printf("%s command requires PID or %%jobid argument\n", argv[0]); /* REM Check the error messages to fix with tshref */
         return;
     }
     /*get the job by jid or pid */
     if (id[0] == '%') { /* it is a jid*/
         jid = atoi(&id[1]); /* REM do i need a isdigit here? */
         if (!(job = getjobjid(jobs, jid))) {
-            printf("[%%%d] No such job.\n", jid);
+            printf("%%%d: No such job.\n", jid);
             return;
         }
     }  else if (isdigit(id[0])){ /* it is a pid */
         pid_t pid = atoi(id); /* REM check for error in this case like 1a*/
         if (!(job=getjobpid(jobs, pid))) {
-            printf("(%d) No such process.\n", pid);
+            printf("(%d): No such process.\n", pid);
             return;
         }
     } else {
@@ -421,7 +421,7 @@ void sigint_handler(int sig)
     if (pid != 0){ // don't kill the shell
         kill(-pid, 2);
         if (sig < 0) {
-            printf("Job [%%%d] (%d) was killed by signal: %d\n", jid, pid, (-sig));
+            printf("Job [%%%d] (%d) terminated by signal: %d\n", jid, pid, (-sig));
             deletejob(jobs, pid);
         }
     }
@@ -442,7 +442,7 @@ void sigtstp_handler(int sig)
     if (pid != 0){ // if there is a job in the foreground, stop it.
         getjobpid(jobs, pid)->state = ST;
         kill(-pid, SIGTSTP); /* REM may be pass SIGSTP? */
-        printf("Job [%%%d] (%d) was stopped by signal: %d\n", jid, pid, sig);
+        printf("Job [%%%d] (%d) stopped by signal: %d\n", jid, pid, sig);
     }
 
     return;
