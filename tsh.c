@@ -394,7 +394,7 @@ void sigchld_handler(int sig)
         } else if (WIFSTOPPED(status)) { 
             sigtstp_handler(20); // stop the process
         } else if (WIFEXITED(status)) { /* child terminated normally. */
-            deletejob(jobs, pid); // delete the job
+            deletejob(jobs, -pid); // delete the job
         }
     }
     return;
