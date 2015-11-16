@@ -222,7 +222,7 @@ void eval(char *cmdline)
             if (!bg){
                 waitfg(pid); /* REM Implement this waitfg function */
             } else {
-                printf("[%d] (%d) %s\n", pid2jid(pid), pid, cmdline);
+                printf("[%d] (%d) %s", pid2jid(pid), pid, cmdline);
             }
         }
     }   
