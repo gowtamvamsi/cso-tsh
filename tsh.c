@@ -389,7 +389,7 @@ void sigchld_handler(int sig)
     int status;
     // WNOHANG and WUNTRACED prevent from waiting for a process that's already dead
     // if an fgjob is doing something weird/uncaught, fix it (3 possibilities below)
-    while ((pid = waitpid(-fgpid(jobs), &status, WNOHANG|WUNTRACED)) > 0) {
+    while ((pid = waitpid(-1, &status, WNOHANG|WUNTRACED)) > 0) {
         if (WIFSIGNALED(status)) { /* child terminated but the signal was not caught. */ 
             if (verbose) printf("WIFSIGNALED with status = %d and pid = %d\n", status, pid);
             sigint_handler(SIGINT); // kill the process
