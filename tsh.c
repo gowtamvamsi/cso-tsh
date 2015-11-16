@@ -420,13 +420,8 @@ void sigint_handler(int sig)
 
     if (pid != 0){ // don't kill the shell
         kill(-pid, 2);
-<<<<<<< HEAD
-        if (sig < 0) { /* A background process just died on its own. */
-            printf("Job [%%%d] (%d) was killed by signal: %d\n", jid, pid, sig);
-=======
         if (sig < 0) {
             printf("Job [%%%d] (%d) was killed by signal: %d\n", jid, pid, (-sig));
->>>>>>> 92daffefded774004c37a0c06236dcb0534d1feb
             deletejob(jobs, pid);
         }
     }
