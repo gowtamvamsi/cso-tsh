@@ -418,7 +418,7 @@ void sigint_handler(int sig)
     if (pid != 0){ // don't kill the shell
         kill(-pid, 15);
         if (sig < 0) { /* A background process just died on its own. */
-            printf("Job [%%%d] (%d) was killed by signal: %d\n", jid, pid, (-sig));
+            printf("Job [%%%d] (%d) was killed by signal: %d\n", jid, pid, sig);
             deletejob(jobs, pid);
         }
     }
@@ -438,7 +438,6 @@ void sigtstp_handler(int sig)
 
     if (pid != 0){ // if there is a job in the foreground, stop it.
         jobs[jid].state = ST;
-        printf("%d", SIGTSTP);
         kill(-pid, 24); /* REM may be pass SIGSTP? */
         printf("Job [%%%d] (%d) was stopped by signal: %d\n", jid, pid, sig);
     }
