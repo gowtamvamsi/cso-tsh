@@ -386,19 +386,22 @@ void sigchld_handler(int sig)
 {
     if (verbose) printf("\nsigchld_handler called with sig = %d\n", sig);
     pid_t pid = 1;
-    int status;
+    int status, jid;
     // WNOHANG and WUNTRACED prevent from waiting for a process that's already dead
     // if an fgjob is doing something weird/uncaught, fix it (3 possibilities below)
     while ((pid = waitpid(-1, &status, WNOHANG|WUNTRACED)) > 0) {
+        jid = pid2jid(pid);
         if (WIFSIGNALED(status)) { /* child terminated but the signal was not caught. basically for background processes. */ 
-            if (verbose) printf("WIFSIGNALED with status = %d and pid = %d\n", status, pid);
+            if (verbose) printf("WIFSIGNALED on [%%%d] (%d) by sig %d\n", jid, pid, WTERMSIG(status));
             sigint_handler(-2); // reap the process
         } else if (WIFSTOPPED(status)) { 
-            if (verbose) printf("WIFSTOPPED with status = %d and pid = %d\n", status, pid);
-            sigtstp_handler(20); // stop the process
+            if (verbose) printf("WIFSTOPPED on [%%%d] (%d) by sig %d\n", jid, pid, WSTOPSIG(status));
+            sigtstp_handler(24); // stop the process
         } else if (WIFEXITED(status)) { /* child terminated normally. */
-            if (verbose) printf("WIFEXITED with status = %d and pid = %d\n", status, pid);
+            if (verbose) printf("WIFEXITED on [%%%d] (%d) with status %d", jid, pid, WEXITSTATUS(status));
             deletejob(jobs, pid); // delete the job
+        } else {
+            deletejob(jobs, pid);
         }
     }
     return;
@@ -417,8 +420,13 @@ void sigint_handler(int sig)
 
     if (pid != 0){ // don't kill the shell
         kill(-pid, 2);
+<<<<<<< HEAD
         if (sig < 0) { /* A background process just died on its own. */
             printf("Job [%%%d] (%d) was killed by signal: %d\n", jid, pid, sig);
+=======
+        if (sig < 0) {
+            printf("Job [%%%d] (%d) was killed by signal: %d\n", jid, pid, (-sig));
+>>>>>>> 92daffefded774004c37a0c06236dcb0534d1feb
             deletejob(jobs, pid);
         }
     }
