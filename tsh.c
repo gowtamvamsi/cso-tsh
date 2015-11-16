@@ -393,10 +393,10 @@ void sigchld_handler(int sig)
     while ((pid = waitpid(-1, &status, WNOHANG|WUNTRACED)) > 0) {
         if (WIFSIGNALED(status)) { /* child terminated but the signal was not caught. */ 
             if (verbose) printf("WIFSIGNALED with status = %d and pid = %d\n", status, pid);
-            sigint_handler(SIGINT); // kill the process
+            sigint_handler(-2); // kill the process
         } else if (WIFSTOPPED(status)) { 
             if (verbose) printf("WIFSTOPPED with status = %d and pid = %d\n", status, pid);
-            sigtstp_handler(SIGTSTP); // stop the process
+            sigtstp_handler(20); // stop the process
         } else if (WIFEXITED(status)) { /* child terminated normally. */
             if (verbose) printf("WIFEXITED with status = %d and pid = %d\n", status, pid);
             deletejob(jobs, pid); // delete the job
@@ -417,7 +417,7 @@ void sigint_handler(int sig)
     int jid = pid2jid(pid);
 
     if (pid != 0){ // don't kill the shell
-        kill(-pid, SIGINT);
+        kill(-pid, 15);
         if (sig < 0) {
             printf("Job [%%%d] (%d) was killed by signal: %d\n", jid, pid, sig);
             deletejob(jobs, pid);
