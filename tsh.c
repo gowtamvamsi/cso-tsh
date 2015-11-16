@@ -174,27 +174,27 @@ void eval(char *cmdline)
     char *argv[MAXARGS];
     pid_t pid;
     int bg = parseline(cmdline, argv); /* build argv and store whether the process is background or foreground */
-    
-    
     sigset_t sigset; /* the set of signals to be blocked, declared in <signal.h>, must be initialized using sigemptyset()  */ 
-    if (sigemptyset(&sigset) < 0){
-        unix_error("sigemptyset() error!"); /* not sure if this error will ever occur. just putting it in for specifications */
-    } 
-    if (sigaddset(&sigset, SIGCHLD) < 0 ) {
-        unix_error("sigaddset() error!");
-    }
-    if (sigprocmask(SIG_BLOCK, &sigset, NULL) < 0) {
-        unix_error("sigprocmask() error!");
-    }
+
     /* now the parent already has the SIGCHLD blocked. need to unblock these signals for the child. */ 
     
     if (!builtin_cmd(argv)) {
         /* REM implement the signal blocks */
+
+        if (sigemptyset(&sigset) < 0){
+            unix_error("sigemptyset() error!"); /* not sure if this error will ever occur. just putting it in for specifications */
+        } 
+        if (sigaddset(&sigset, SIGCHLD) < 0 ) {
+            unix_error("sigaddset() error!");
+        }
+        if (sigprocmask(SIG_BLOCK, &sigset, NULL) < 0) {
+            unix_error("sigprocmask() error!");
+        }
         if ((pid=Fork()) == 0) {/* in the child process, run the command */
             
             
             /* REM Q (Why) unblock the signal before exec-ing the child */
-            if (sigprocmask(SIG_UNBLOCK, &sigset, NULL)) {
+            if (sigprocmask(SIG_UNBLOCK, &sigset, NULL) < 0) {
                 unix_error("setprogmask() error while SIG_UNBLOCK-ing the SIGCHLD.");
             }
             
@@ -212,7 +212,7 @@ void eval(char *cmdline)
 
         } else {  /* in the parent process, wait for child termination if foreground or else just add the job */
             
-            if (sigprocmask(SIG_UNBLOCK, &sigset, NULL)) {
+            if (sigprocmask(SIG_UNBLOCK, &sigset, NULL) < 0 ) {
                 unix_error("sigprocmask() error while SIG_UNBLOCK-ing the SIGCHLD");
             }
             addjob(jobs, pid, bg ? BG : FG, cmdline);
@@ -324,6 +324,7 @@ void do_bgfg(char **argv)
     /*get the job by jid or pid */
     if (id[0] == '%') { /* it is a jid*/
         jid = atoi(&id[1]); /* REM do i need a isdigit here? */
+        printf("yup i am herer.");
         if (!(job = getjobjid(jobs, jid))) {
             printf("[%s] No such job.\n", id);
             return;
@@ -335,7 +336,7 @@ void do_bgfg(char **argv)
             return;
         }
     } else {
-        printf("%s The argument must be a PID or %%jid.\n", id);
+        printf("%s The argument must be a PID or %%jobid.\n", id);
         return;
     }
     
@@ -388,7 +389,7 @@ void sigchld_handler(int sig)
     int status;
     // WNOHANG and WUNTRACED prevent from waiting for a process that's already dead
     // if an fgjob is doing something weird/uncaught, fix it (3 possibilities below)
-    while ((pid = waitpid(fgpid(jobs), &status, WNOHANG|WUNTRACED)) > 0) {
+    while ((pid = waitpid(-1, &status, WNOHANG|WUNTRACED)) > 0) {
         if (WIFSIGNALED(status)) { /* child terminated but the signal was not caught. */ 
             sigint_handler(-2); // kill the process
         } else if (WIFSTOPPED(status)) { 
@@ -411,7 +412,7 @@ void sigint_handler(int sig)
     int jid = pid2jid(pid);
 
     if (pid != 0){ // don't kill the shell
-        kill(-pid, 15);
+        kill(-pid, SIGINT);
         if (sig < 0) {
             printf("Job [%d] (%%%d) was killed by signal: %d\n", pid, jid, sig);
             deletejob(jobs, pid);
