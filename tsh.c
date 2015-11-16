@@ -440,8 +440,7 @@ void sigtstp_handler(int sig)
     int jid = pid2jid(pid);
 
     if (pid != 0){ // if there is a job in the foreground, stop it.
-        printf("%d",jobs[jid].state);
-        jobs[jid].state = ST;
+        getjobpid(jobs, pid)->state = ST;
         kill(-pid, SIGTSTP); /* REM may be pass SIGSTP? */
         printf("Job [%%%d] (%d) was stopped by signal: %d\n", jid, pid, sig);
     }
