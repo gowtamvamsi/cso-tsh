@@ -385,7 +385,7 @@ void waitfg(pid_t pid)
  */
 void sigchld_handler(int sig) 
 {
-    if (verbose) printf("sigchld_handler called with sig = %d\n", sig);
+    if (verbose) printf("\nsigchld_handler called with sig = %d\n", sig);
     pid_t pid = 1;
     int status;
     // WNOHANG and WUNTRACED prevent from waiting for a process that's already dead
@@ -412,6 +412,7 @@ void sigchld_handler(int sig)
  */
 void sigint_handler(int sig) 
 {
+    if (verbose) printf("\nsigint_handler called with sig = %d\n", sig);
     pid_t pid = fgpid(jobs);
     int jid = pid2jid(pid);
 
@@ -432,6 +433,7 @@ void sigint_handler(int sig)
  */
 void sigtstp_handler(int sig) 
 {
+    if (verbose) printf("\nsigtstp_handler called with sig = %d\n", sig);
     pid_t pid = fgpid(jobs);
     int jid = pid2jid(pid);
 
