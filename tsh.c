@@ -416,15 +416,9 @@ void sigint_handler(int sig)
     pid_t pid = fgpid(jobs);
     int jid = pid2jid(pid);
 
-<<<<<<< HEAD
-    if (pid != 0){
-        kill(-pid, 15); /* REM may be pass SIGINT? */
-        if (sig < 0) { /* REM Signal received from an improperly terminated child? */
-=======
     if (pid != 0){ // don't kill the shell
         kill(-pid, 15);
         if (sig < 0) {
->>>>>>> 341fa407e85bc6649cc80e30d895aae49d13f077
             printf("Job [%d] (%%%d) was killed by signal: %d\n", pid, jid, sig);
             deletejob(jobs, pid);
         }
