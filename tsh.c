@@ -391,13 +391,13 @@ void sigchld_handler(int sig)
     // if an fgjob is doing something weird/uncaught, fix it (3 possibilities below)
     while ((pid = waitpid(-1, &status, WNOHANG|WUNTRACED)) > 0) {
         if (WIFSIGNALED(status)) { /* child terminated but the signal was not caught. basically for background processes. */ 
-            if (verbose) printf("WIFSIGNALED with status = %d and pid = %d\n", status, pid);
+            if (verbose) printf("WIFSIGNALED on [%%%d] (%d) by sig %d\n", jid, pid, WTERMSIG(status));
             sigint_handler(-2); // reap the process
         } else if (WIFSTOPPED(status)) { 
-            if (verbose) printf("WIFSTOPPED with status = %d and pid = %d\n", status, pid);
+            if (verbose) printf("WIFSTOPPED on [%%%d] (%d) by sig %d\n", jid, pid, WSTOPSIG(status));
             sigtstp_handler(24); // stop the process
         } else if (WIFEXITED(status)) { /* child terminated normally. */
-            if (verbose) printf("WIFEXITED with status = %d and pid = %d\n", status, pid);
+            if (verbose) printf("WIFEXITED on [%%%d] (%d) with status %d", jid, pid, WEXITSTATUS(status));
             deletejob(jobs, pid); // delete the job
         }
     }
