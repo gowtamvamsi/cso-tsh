@@ -215,11 +215,14 @@ void eval(char *cmdline)
             if (sigprocmask(SIG_UNBLOCK, &sigset, NULL) < 0 ) {
                 unix_error("sigprocmask() error while SIG_UNBLOCK-ing the SIGCHLD");
             }
-            addjob(jobs, pid, bg ? BG : FG, cmdline);
+            if (!addjob(jobs, pid, bg ? BG : FG, cmdline)){
+                printf("addjob() error!");
+                return;
+            }
             if (!bg){
                 waitfg(pid); /* REM Implement this waitfg function */
             } else {
-                listjobs(jobs);
+                printf("[%d] (%d) %s\n", pid2jid(pid), pid, cmdline);
             }
         }
     }   
