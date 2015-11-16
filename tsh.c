@@ -400,6 +400,8 @@ void sigchld_handler(int sig)
         } else if (WIFEXITED(status)) { /* child terminated normally. */
             if (verbose) printf("WIFEXITED on [%%%d] (%d) with status %d", jid, pid, WEXITSTATUS(status));
             deletejob(jobs, pid); // delete the job
+        } else {
+            deletejob(jobs, pid);
         }
     }
     return;
