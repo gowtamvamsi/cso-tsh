@@ -384,20 +384,20 @@ void waitfg(pid_t pid)
  */
 void sigchld_handler(int sig) 
 {
-    printf("sigchld_handler called with sig = %d\n", sig);
+    if (verbose) printf("sigchld_handler called with sig = %d\n", sig);
     pid_t pid = 1;
     int status;
     // WNOHANG and WUNTRACED prevent from waiting for a process that's already dead
     // if an fgjob is doing something weird/uncaught, fix it (3 possibilities below)
     while ((pid = waitpid(-fgpid(jobs), &status, WNOHANG|WUNTRACED)) > 0) {
         if (WIFSIGNALED(status)) { /* child terminated but the signal was not caught. */ 
-            printf("WIFSIGNALED with status = %d and pid = %d\n", status, pid);
+            if (verbose) printf("WIFSIGNALED with status = %d and pid = %d\n", status, pid);
             sigint_handler(SIGINT); // kill the process
         } else if (WIFSTOPPED(status)) { 
-            printf("WIFSTOPPED with status = %d and pid = %d\n", status, pid);
+            if (verbose) printf("WIFSTOPPED with status = %d and pid = %d\n", status, pid);
             sigtstp_handler(SIGTSTP); // stop the process
         } else if (WIFEXITED(status)) { /* child terminated normally. */
-            printf("WIFEXITED with status = %d and pid = %d\n", status, pid);
+            if (verbose) printf("WIFEXITED with status = %d and pid = %d\n", status, pid);
             deletejob(jobs, pid); // delete the job
         }
     }
