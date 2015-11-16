@@ -338,7 +338,7 @@ void do_bgfg(char **argv)
             return;
         }
     } else {
-        printf("%s argument must be a PID or %%jobid\n", argv[0]);
+        printf("%s: argument must be a PID or %%jobid\n", argv[0]);
         return;
     }
     
@@ -422,7 +422,7 @@ void sigint_handler(int sig)
     int jid = pid2jid(pid);
 
     if (pid != 0){ // don't kill the shell
-        kill(-pid, 2);
+        kill(-pid, 2); /* REM system call, check return value. */
         if (sig < 0) {
             printf("Job [%d] (%d) terminated by signal %d\n", jid, pid, (-sig));
             deletejob(jobs, pid);
@@ -444,7 +444,7 @@ void sigtstp_handler(int sig)
 
     if (pid != 0){ // if there is a job in the foreground, stop it.
         getjobpid(jobs, pid)->state = ST;
-        kill(-pid, SIGTSTP); /* REM may be pass SIGSTP? */
+        kill(-pid, SIGTSTP); /* REM check for the return value */
         printf("Job [%d] (%d) stopped by signal %d\n", jid, pid, sig);
     }
 
