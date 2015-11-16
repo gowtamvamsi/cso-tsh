@@ -1,9 +1,8 @@
 /* 
  * tsh - A tiny shell program with job control
  * 
- * <Put your name and login ID here>
- * William Leighton Dawson -wld224
- * Prasant Adhikari -pa1038
+ * William Leighton Dawson - wld224
+ * Prasant Adhikari - pa1038
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -202,7 +201,7 @@ void eval(char *cmdline)
             
             /* REM INS Here's the workaround.......to prevent ctrl-c going all the way up to the bash */  
             if (setpgid (0, 0) < 0) {
-                unix_error("setpgid error\n"); /* REM remember to check for error for everything */
+                unix_error("setpgid error"); /* REM remember to check for error for everything */
             }
             
             
@@ -230,7 +229,7 @@ void eval(char *cmdline)
 int Fork() {
     pid_t pid;
     if ((pid=fork())<0) {
-        unix_error("Fork error!\n");
+        unix_error("Fork error!");
     }
     return pid;
 }
@@ -319,31 +318,37 @@ void do_bgfg(char **argv)
     int jid;  /* finally use jid to change job state. pid is not applicable because jid2pid is not available. */ 
     /* make sure the arguments are passed. */
     if (id==NULL){
-        printf("Provide a pid or %%jid with %s", argv[0]); /* REM Check the error messages to fix with tshref */
+        printf("Provide a pid or %%jid with %s\n", argv[0]); /* REM Check the error messages to fix with tshref */
         return;
     }
     /*get the job by jid or pid */
     if (id[0] == '%') { /* it is a jid*/
         jid = atoi(&id[1]); /* REM do i need a isdigit here? */
         if (!(job = getjobjid(jobs, jid))) {
-            printf("[%s] No such job.", id);
+            printf("[%s] No such job.\n", id);
             return;
         }
     }  else if (isdigit(id[0])){ /* it is a pid */
         pid_t pid = atoi(id); /* REM check for error in this case like 1a*/
         if (!(job=getjobpid(jobs, pid))) {
-            printf("[%s] No such process.", id);
+            printf("[%s] No such process.\n", id);
             return;
         }
     } else {
-        printf("%s The argument must be a PID or %%jid.", id);
+        printf("%s The argument must be a PID or %%jid.\n", id);
         return;
     }
     
     /* get the job running */
+<<<<<<< HEAD
     if (kill(-(job->pid), SIGCONT) < 0) {
         if (errno != ESRCH) { /* REM Q Still not sure on the ESRCH functionality */
             printf("kill error!");
+=======
+    if (kill(-(job -> pid), SIGCONT) < 0) {
+        if (errno != ESRCH) {
+            printf("kill error!\n");
+>>>>>>> 341fa407e85bc6649cc80e30d895aae49d13f077
         }
     }
 
@@ -355,7 +360,7 @@ void do_bgfg(char **argv)
         job->state=BG;
         printf("[%d] (%d) %s", job->jid, job->pid, job->cmdline); /* REM Will probably need to change this behaviour to single job*/
     } else {
-        printf("bg/fg error: %s", argv[0]);
+        printf("bg/fg error: %s\n", argv[0]);
     }
 
     return;
@@ -388,7 +393,7 @@ void sigchld_handler(int sig)
     pid_t pid = 1;
     int status;
     // WNOHANG and WUNTRACED prevent from waiting for a process that's already dead
-    // if a fgjob is doing something weird, fix it (3 possibilities below)
+    // if an fgjob is doing something weird/uncaught, fix it (3 possibilities below)
     while ((pid = waitpid(fgpid(jobs), &status, WNOHANG|WUNTRACED)) > 0) {
         if (WIFSIGNALED(status)) { /* child terminated but the signal was not caught. */ 
             sigint_handler(-2); // kill the process
@@ -411,9 +416,15 @@ void sigint_handler(int sig)
     pid_t pid = fgpid(jobs);
     int jid = pid2jid(pid);
 
+<<<<<<< HEAD
     if (pid != 0){
         kill(-pid, 15); /* REM may be pass SIGINT? */
         if (sig < 0) { /* REM Signal received from an improperly terminated child? */
+=======
+    if (pid != 0){ // don't kill the shell
+        kill(-pid, 15);
+        if (sig < 0) {
+>>>>>>> 341fa407e85bc6649cc80e30d895aae49d13f077
             printf("Job [%d] (%%%d) was killed by signal: %d\n", pid, jid, sig);
             deletejob(jobs, pid);
         }
@@ -431,7 +442,7 @@ void sigtstp_handler(int sig)
     pid_t pid = fgpid(jobs);
     int jid = pid2jid(pid);
 
-    if (pid != 0){
+    if (pid != 0){ // don't stop the shell, otherwise it zombifies but doesn't die
         jobs[jid].state = ST;
         kill(-pid, 24); /* REM may be pass SIGSTP? */
         if (sig < 0) {
