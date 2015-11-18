@@ -422,7 +422,7 @@ void sigint_handler(int sig)
     pid_t pid = fgpid(jobs);
     int jid = pid2jid(pid);
 
-    if (pid != 0){ /* there is a foreground job running. send the signal. */
+    if (pid != 0){ /* if there is a foreground job running, send the signal. */
         if (kill(-pid, 2) < 0){ 
             if (errno != ESRCH) { 
                 printf("kill error!\n");
