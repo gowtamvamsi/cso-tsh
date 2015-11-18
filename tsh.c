@@ -179,10 +179,10 @@ void eval(char *cmdline)
     /* now the parent already has the SIGCHLD blocked. need to unblock these signals for the child. */ 
     
     if (!builtin_cmd(argv)) {
-        /* REM implement the signal blocks */
 
+        /* implement the signal blocks to prevent SIGCHLD signal race condition */
         if (sigemptyset(&sigset) < 0){
-            unix_error("sigemptyset() error!"); /* not sure if this error will ever occur. just putting it in for specifications */
+            unix_error("sigemptyset() error!"); 
         } 
         if (sigaddset(&sigset, SIGCHLD) < 0 ) {
             unix_error("sigaddset() error!");
@@ -193,21 +193,21 @@ void eval(char *cmdline)
         if ((pid=Fork()) == 0) {/* in the child process, run the command */
             
             
-            /* REM Q (Why) unblock the signal before exec-ing the child */
+            /* unblock the signals before exec-ing the process */
             if (sigprocmask(SIG_UNBLOCK, &sigset, NULL) < 0) {
                 unix_error("setprogmask() error while SIG_UNBLOCK-ing the SIGCHLD.");
             }
             
             
-            /* REM INS Here's the workaround.......to prevent ctrl-c going all the way up to the bash */  
+            /* prevent ctrl-c going all the way up to the bash */  
             if (setpgid (0, 0) < 0) {
-                unix_error("setpgid error"); /* REM remember to check for error for everything */
+                unix_error("setpgid error"); 
             }
             
             
             if (execvp(argv[0], argv) < 0 ) {
                 printf("%s: Command not found\n", argv[0]);
-                exit(1); /* REM Q research on the exit status code. */
+                exit(1); 
             }
 
         } else {  /* in the parent process, wait for child termination if foreground or else just add the job */
@@ -220,7 +220,7 @@ void eval(char *cmdline)
                 return;
             }
             if (!bg){
-                waitfg(pid); /* REM Implement this waitfg function */
+                waitfg(pid); 
             } else {
                 printf("[%d] (%d) %s", pid2jid(pid), pid, cmdline);
             }
@@ -299,7 +299,7 @@ int parseline(const char *cmdline, char **argv)
  */
 int builtin_cmd(char **argv) 
 {
-   if (!strcmp(argv[0], "quit") || !strcmp(argv[0], "exit")) {
+   if (!strcmp(argv[0], "quit") || !strcmp(argv[0], "exit")) { 
         exit(0);
    } else if (!strcmp(argv[0], "bg") || !strcmp(argv[0],"fg")) {
         do_bgfg(argv);
@@ -318,21 +318,21 @@ void do_bgfg(char **argv)
 {
     struct job_t *job;
     char *id = argv[1]; /* could be pid or jid */
-    int jid;  /* finally use jid to change job state. pid is not applicable because jid2pid is not available. */ 
+    int jid;  /* finally use jid to change job state. pid is not applicable because jid2pid is not provided. */ 
     /* make sure the arguments are passed. */
     if (id==NULL){
-        printf("%s command requires PID or %%jobid argument\n", argv[0]); /* REM Check the error messages to fix with tshref */
+        printf("%s command requires PID or %%jobid argument\n", argv[0]); 
         return;
     }
     /*get the job by jid or pid */
     if (id[0] == '%') { /* it is a jid*/
-        jid = atoi(&id[1]); /* REM do i need a isdigit here? */
+        jid = atoi(&id[1]); 
         if (!(job = getjobjid(jobs, jid))) {
             printf("%%%d: No such job\n", jid);
             return;
         }
     }  else if (isdigit(id[0])){ /* it is a pid */
-        pid_t pid = atoi(id); /* REM check for error in this case like 1a*/
+        pid_t pid = atoi(id); 
         if (!(job=getjobpid(jobs, pid))) {
             printf("(%d): No such process\n", pid);
             return;
@@ -344,7 +344,7 @@ void do_bgfg(char **argv)
     
     /* get the job running */
     if (kill(-(job->pid), SIGCONT) < 0) {
-        if (errno != ESRCH) { /* REM Q Still not sure on the ESRCH functionality */
+        if (errno != ESRCH) { 
             printf("kill error!\n");
         }
     }
@@ -352,10 +352,10 @@ void do_bgfg(char **argv)
     /* get the job in the correct state*/
     if (!strcmp(argv[0], "fg")){
         job->state=FG;
-        waitfg(job->pid); /* REM just something that foreground jobs do */
+        waitfg(job->pid); 
     } else if (!strcmp(argv[0], "bg")) {
         job->state=BG;
-        printf("[%d] (%d) %s", job->jid, job->pid, job->cmdline); /* REM Will probably need to change this behaviour to single job*/
+        printf("[%d] (%d) %s", job->jid, job->pid, job->cmdline); 
     } else {
         printf("bg/fg error: %s\n", argv[0]);
     }
@@ -422,9 +422,9 @@ void sigint_handler(int sig)
     pid_t pid = fgpid(jobs);
     int jid = pid2jid(pid);
 
-    if (pid != 0){ // don't kill the shell
-        if (kill(-pid, 2) < 0){ /* REM system call, check return value. */
-            if (errno != ESRCH) { /* REM Q Still not sure on the ESRCH functionality */
+    if (pid != 0){ /* there is a foreground job running. send the signal. */
+        if (kill(-pid, 2) < 0){ 
+            if (errno != ESRCH) { 
                 printf("kill error!\n");
             }
         }
@@ -450,7 +450,7 @@ void sigtstp_handler(int sig)
     if (pid != 0){ // if there is a job in the foreground, stop it.
         getjobpid(jobs, pid)->state = ST;
         if (kill(-pid, SIGTSTP) < 0) {
-            if (errno != ESRCH) { /* REM Q Still not sure on the ESRCH functionality */
+            if (errno != ESRCH) { 
                 printf("kill error!\n");
             }
         }
@@ -507,7 +507,7 @@ int addjob(struct job_t *jobs, pid_t pid, int state, char *cmdline)
 	if (jobs[i].pid == 0) {
 	    jobs[i].pid = pid;
 	    jobs[i].state = state;
-	    jobs[i].jid = nextjid++; /* REM check the ++ operator behaviour for assignment */
+	    jobs[i].jid = nextjid++; 
 	    if (nextjid > MAXJOBS)
 		nextjid = 1;
 	    strcpy(jobs[i].cmdline, cmdline);
