@@ -345,7 +345,7 @@ void do_bgfg(char **argv)
     /* get the job running */
     if (kill(-(job->pid), SIGCONT) < 0) {
         if (errno != ESRCH) { /* REM Q Still not sure on the ESRCH functionality */
-            printf("kill error!");
+            printf("kill error!\n");
         }
     }
 
@@ -387,7 +387,7 @@ void waitfg(pid_t pid)
  */
 void sigchld_handler(int sig) 
 {
-    if (verbose) printf("\nsigchld_handler called with sig = %d\n", sig);
+    if (verbose) fprintf(stderr, "\nsigchld_handler called with sig = %d\n", sig);
     pid_t pid = 1;
     int status, jid;
     // WNOHANG and WUNTRACED prevent from waiting for a process that's already dead
@@ -395,16 +395,17 @@ void sigchld_handler(int sig)
     while ((pid = waitpid(-1, &status, WNOHANG|WUNTRACED)) > 0) {
         jid = pid2jid(pid);
         if (WIFSIGNALED(status)) { /* child terminated but the signal was not caught. basically for background processes. */ 
-            if (verbose) printf("WIFSIGNALED on [%%%d] (%d) by sig %d\n", jid, pid, WTERMSIG(status));
+            if (verbose) fprintf(stderr, "WIFSIGNALED on [%%%d] (%d) by sig %d\n", jid, pid, WTERMSIG(status));
             sigint_handler(-2); // reap the process
         } else if (WIFSTOPPED(status)) { 
-            if (verbose) printf("WIFSTOPPED on [%%%d] (%d) by sig %d\n", jid, pid, WSTOPSIG(status));
+            if (verbose) fprintf(stderr, "WIFSTOPPED on [%%%d] (%d) by sig %d\n", jid, pid, WSTOPSIG(status));
             sigtstp_handler(SIGTSTP); // stop the process
         } else if (WIFEXITED(status)) { /* child terminated normally. */
-            if (verbose) printf("WIFEXITED on [%%%d] (%d) with status %d", jid, pid, WEXITSTATUS(status));
+            if (verbose) fprintf(stderr, "WIFEXITED on [%%%d] (%d) with status %d", jid, pid, WEXITSTATUS(status));
             deletejob(jobs, pid); // delete the job
         } else {
-            deletejob(jobs, pid);
+            printf("There was an error handling child (%d)!\n", pid);
+            exit(1);
         }
     }
     return;
@@ -417,12 +418,16 @@ void sigchld_handler(int sig)
  */
 void sigint_handler(int sig) 
 {
-    if (verbose) printf("\nsigint_handler called with sig = %d\n", sig);
+    if (verbose) fprintf(stderr, "\nsigint_handler called with sig = %d\n", sig);
     pid_t pid = fgpid(jobs);
     int jid = pid2jid(pid);
 
     if (pid != 0){ // don't kill the shell
-        kill(-pid, 2); /* REM system call, check return value. */
+        if (kill(-pid, 2) < 0){ /* REM system call, check return value. */
+            if (errno != ESRCH) { /* REM Q Still not sure on the ESRCH functionality */
+                printf("kill error!\n");
+            }
+        }
         if (sig < 0) {
             printf("Job [%d] (%d) terminated by signal %d\n", jid, pid, (-sig));
             deletejob(jobs, pid);
@@ -438,13 +443,16 @@ void sigint_handler(int sig)
  */
 void sigtstp_handler(int sig) 
 {
-    if (verbose) printf("\nsigtstp_handler called with sig = %d\n", sig);
+    if (verbose) fprintf(stderr, "\nsigtstp_handler called with sig = %d\n", sig);
     pid_t pid = fgpid(jobs);
     int jid = pid2jid(pid);
 
     if (pid != 0){ // if there is a job in the foreground, stop it.
         getjobpid(jobs, pid)->state = ST;
-        kill(-pid, SIGTSTP); /* REM check for the return value */
+        if (kill(-pid, SIGTSTP) < 0) {
+            if (errno != ESRCH) { /* REM Q Still not sure on the ESRCH functionality */
+                printf("kill error!\n");
+            }
         printf("Job [%d] (%d) stopped by signal %d\n", jid, pid, sig);
     }
 
