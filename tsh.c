@@ -453,6 +453,7 @@ void sigtstp_handler(int sig)
             if (errno != ESRCH) { /* REM Q Still not sure on the ESRCH functionality */
                 printf("kill error!\n");
             }
+        }
         printf("Job [%d] (%d) stopped by signal %d\n", jid, pid, sig);
     }
 
